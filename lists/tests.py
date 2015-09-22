@@ -19,7 +19,7 @@ class HomePageTest(TestCase):
 		# self.assertTrue(response.content.endswith(b'</html>'))
 		# self.assertIn(b'<title>To-Do lists</title><body>ester</body>', response.content)
 		# self.assertTrue(response.content.strip().endswith(b'</html>'))
-		expected_html = render_to_string('home.html')
+		expected_html = render_to_string('home.html', { 'comment': 'yey, waktunya berlibur' })
 		self.assertEqual(response.content.decode(), expected_html)
 
 	def test_home_page_can_save_a_POST_request(self):
@@ -57,6 +57,38 @@ class HomePageTest(TestCase):
 
 		self.assertIn('itemey 1', response.content.decode())
 		self.assertIn('itemey 2', response.content.decode())
+
+	def test_home_page_list_item_equals_to_zero(self):
+		request = HttpRequest()
+		response = home_page(request)
+
+		self.assertEqual(Item.objects.count(), 0)
+		self.assertIn('yey, waktunya berlibur', response.content.decode())
+
+	def test_home_page_list_item_less_than_five(self):
+		Item.objects.create(text='itemey 1')
+		Item.objects.create(text='itemey 2')
+		Item.objects.create(text='itemey 3')
+
+		request = HttpRequest()
+		response = home_page(request)
+
+		self.assertLess(Item.objects.count(), 5)
+		self.assertIn('sibuk tapi santai', response.content.decode())
+
+	def test_home_page_list_item_greater_than_equal_to_five(self):
+		Item.objects.create(text='itemey 1')
+		Item.objects.create(text='itemey 2')
+		Item.objects.create(text='itemey 3')
+		Item.objects.create(text='itemey 4')
+		Item.objects.create(text='itemey 5')
+
+		request = HttpRequest()
+		response = home_page(request)
+
+		self.assertGreaterEqual(Item.objects.count(), 5)
+		self.assertIn('oh tidak', response.content.decode())
+
 
 class ItemModelTest(TestCase):
 
